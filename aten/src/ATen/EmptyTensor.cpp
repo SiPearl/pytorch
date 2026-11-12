@@ -2,6 +2,7 @@
 #include <ATen/EmptyTensor.h>
 #include <ATen/Context.h>
 #include <c10/core/CPUAllocator.h>
+#include <c10/core/impl/CPUAllocatorOverride.h>
 #include <c10/util/safe_numerics.h>
 
 #include <limits>
@@ -34,7 +35,8 @@ c10::Allocator* GetCPUAllocatorMaybePinned(bool pin_memory) {
     }
   }
 
-  return c10::GetCPUAllocator();
+  auto* allocator_override = c10::impl::getCPUAllocatorOverride();
+  return allocator_override != nullptr ? allocator_override : c10::GetCPUAllocator();
 }
 
 constexpr uint64_t storage_max() {

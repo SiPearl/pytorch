@@ -7,6 +7,7 @@
 
 #include <c10/core/CPUAllocator.h>
 #include <c10/core/SymBool.h>
+#include <c10/core/impl/CPUAllocatorOverride.h>
 
 #include <utility>
 
@@ -53,10 +54,11 @@ inline void maybe_resize_storage_cpu(TensorImpl* self, size_t new_size_bytes) {
 
   const Storage& storage = self->unsafe_storage();
   if (!storage) {
+    auto* allocator_override = c10::impl::getCPUAllocatorOverride();
     auto new_storage = c10::make_intrusive<StorageImpl>(
         StorageImpl::use_byte_size_t(),
         new_size_bytes,
-        c10::GetCPUAllocator(),
+        allocator_override != nullptr ? allocator_override : c10::GetCPUAllocator(),
         true);
     self->set_storage_keep_dtype(std::move(new_storage));
   } else if (new_size_bytes > storage.nbytes()) {
